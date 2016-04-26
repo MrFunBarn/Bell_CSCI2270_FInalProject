@@ -1,6 +1,6 @@
 # Bell_CSCI2270_FInalProject
 
-# Quantum Maths Run With Some Basic Graphs.
+# Quantum Maths Fun With Some Basic Graphs.
 
 QuantumSpins.cpp lets you run very simple electron spin mesurement simulations
 by utilizing simple weighted graphs.
