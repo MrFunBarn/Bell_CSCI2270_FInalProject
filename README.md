@@ -2,7 +2,7 @@
 
 # QuantumSpins Overview
 
-QuantumSpins is uses small weighted graphs to make a simple model of an electrons spin. An electron orbiting an atom can have only be measured to have a spin of up or down but, until it's measured, it may have a spin of up and down at the same time. QuantumSpins captures the behaviour with a 2 verticy graph (2x2 matrix). 
+QuantumSpins uses small weighted graphs to make a simple model of an electrons spin. An electron orbiting an atom can have only be measured to have a spin of up or down but, until it's measured, it may have a spin of up and down at the same time. QuantumSpins captures the behaviour with a 2 verticy graph (2x2 matrix). The weights in the graph come from the probability that the electron will be found in spin up or spin down. It's basicialy how much spin up is in the electron or how much spin down is in the electron. The a lab the weights for the graph would be found by setting up a bunch of electrons in the same state and making measurements of spin on each of them. That would give some number of spin ups and spin downs and the probablilty of spin up would be ( number of spin up electrons ) / ( total number of electrons ).
 
 ## Installation/Compilation
 
