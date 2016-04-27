@@ -59,4 +59,4 @@ and you'll get the main menu.
 9.  and 10 calculate the expactation value of z or x graphs.
 
 ## Making "lab data":
-lab data files are just plan text files with space separated u and d charachters for up and down. 
+lab data files are just plan text files with space separated u and d charachters for up and down spins. 
