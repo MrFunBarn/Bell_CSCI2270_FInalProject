@@ -1,8 +1,13 @@
 # Bell_CSCI2270_FInalProject
+### Author
+Brandon Bell
 
 # QuantumSpins Overview
 
 QuantumSpins uses small weighted graphs to make a simple model of an electrons spin. An electron orbiting an atom can have only be measured to have a spin of up or down but, until it's measured, it may have a spin of up and down at the same time. QuantumSpins captures the behaviour with a 2 verticy graph (2x2 matrix). The weights in the graph come from the probability that the electron will be found in spin up or spin down. It's basicialy how much spin up is in the electron or how much spin down is in the electron. In a lab, the weights for the graph would be found by setting up a bunch of electrons in the same state and making measurements of the spin on each of them. That would give some number of spin ups and spin downs and the probablilty of spin up would be ( number of spin up electrons ) / ( total number of electrons ). Quantum spins lets you make a graph of the electrons spin state by reading "lab spin data" from a text file or by manually specifing the weights for the graph. Once you have a graph, you can calculate the expection value of that electrons spin state. The expectaion value can be used to compute various cool stuff that I did not get around to codeing.
+
+## Sytem requirments:
+QuantumSpins is written for Linux with C++11 and only needs the C++11 standard libary.
 
 ## Installation/Compilation
 
