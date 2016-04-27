@@ -14,11 +14,11 @@
 #include <stack>
 #include <climits>
 
-#include "Graph.h"
+#include "Spins.h"
 using namespace std;
 
 // The constructor will read in the the file and build the 
-Graph::Graph(char *file){
+Spins::Spins(char *file){
     string line;
     string city;
     string Edges;
@@ -66,11 +66,11 @@ Graph::Graph(char *file){
 }
 
 
-Graph::~Graph(){
+Spins::~Spins(){
 }
 
 
-void Graph::addEdge(std::string v1, std::string v2, int weight){
+void Spins::addEdge(std::string v1, std::string v2, int weight){
     for( int i=0; i < vertices.size(); i++ ){
         if( vertices[i].name == v1 ){
             for( int j=0; j < vertices.size(); j++ ){
@@ -86,7 +86,7 @@ void Graph::addEdge(std::string v1, std::string v2, int weight){
 }
 
 
-void Graph::addVertex(std::string name){
+void Spins::addVertex(std::string name){
     bool found = false;
     for( int i=0; i < vertices.size(); i++ ){
         if( vertices[i].name == name ){
@@ -104,7 +104,7 @@ void Graph::addVertex(std::string name){
 }
 
 
-void Graph::displayEdges(){
+void Spins::displayEdges(){
     for( int i=0; i<vertices.size(); i++ ){
         cout<<vertices[i].district<<':'<<vertices[i].name<<"-->";
         for( int j=0; j<vertices[i].adj.size(); j++ ){
@@ -118,7 +118,7 @@ void Graph::displayEdges(){
 }
 
 
-void Graph::assignDistricts(){
+void Spins::assignDistricts(){
     // Reset all visited values to false in case the graph has changed.
     for( int i=0; i<vertices.size(); i++ )
     {
@@ -138,7 +138,7 @@ void Graph::assignDistricts(){
 }
 
 
-void Graph::shortestPath(std::string startingCity, std::string endingCity, bool isdistance){
+void Spins::shortestPath(std::string startingCity, std::string endingCity, bool isdistance){
     vertex *v1;
     vertex *v2;
     bool f1 = false;
@@ -181,7 +181,7 @@ void Graph::shortestPath(std::string startingCity, std::string endingCity, bool 
 }
 
 
-void Graph::Dijkstra(string starting, string destination, bool isdistance)
+void Spins::Dijkstra(string starting, string destination, bool isdistance)
 {
     vertex *startV;
     vertex *endV;
@@ -257,7 +257,7 @@ void Graph::Dijkstra(string starting, string destination, bool isdistance)
 }
 
 
-void Graph::roadTrip()
+void Spins::roadTrip()
 {
     vector<trip> trips;
     for( int x=0; x<vertices.size(); x++ )
@@ -300,7 +300,7 @@ void Graph::roadTrip()
 }
 
 
-void Graph::dFS(vertex *vert, trip *thisTrip)
+void Spins::dFS(vertex *vert, trip *thisTrip)
 {
     vert->visited = true;
     vert->distance = 0;
@@ -320,7 +320,7 @@ void Graph::dFS(vertex *vert, trip *thisTrip)
 }
 
 
-void Graph::DFS(vertex *vert, trip *thisTrip)
+void Spins::DFS(vertex *vert, trip *thisTrip)
 {
     vert->visited = true;
     for( int i=0; i < vert->adj.size(); i++ )
@@ -343,7 +343,7 @@ void Graph::DFS(vertex *vert, trip *thisTrip)
 //call this from within assignDistricts to label the districts.
 //This method should implement a breadth first traversal from the startingCity
 //and assign all cities encountered the distID value
-void Graph::BFTraversalLabel(std::string startingCity, int distID){
+void Spins::BFTraversalLabel(std::string startingCity, int distID){
     vertex *city;
     vertex *n;
     queue<vertex *>  beenTo;

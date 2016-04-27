@@ -5,8 +5,8 @@
 *   Guogui Ding
 *
 */
-#ifndef GRAPH_H
-#define GRAPH_H
+#ifndef SPINS_H
+#define SPINS_H
 #include<vector>
 #include<iostream>
 
@@ -52,11 +52,11 @@ struct trip{
     std::vector<vertex *> trip;
 };
 
-class Graph
+class Spins
 {
     public:
-        Graph(char *);
-        ~Graph();
+        Spins(char *);
+        ~Spins();
         void addEdge(std::string v1, std::string v2, int weight);
         void addVertex(std::string name);
         void displayEdges();
@@ -78,4 +78,4 @@ class Graph
 
 };
 
-#endif // GRAPH_H
+#endif // SPINS_H
