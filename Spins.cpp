@@ -1,6 +1,6 @@
 /*
 *   Brandon Bell
-*   Assignment10
+*   Final Project
 *   Recitation: Th 1030am
 *   Guogui Ding
 */
@@ -17,52 +17,10 @@
 #include "Spins.h"
 using namespace std;
 
-// The constructor will read in the the file and build the 
-Spins::Spins(char *file){
-    string line;
-    string city;
-    string Edges;
-    string edge;
-
-    ifstream inFile(file);
-    getline( inFile, line );
-    stringstream vert(line);
-    // Build the vector of vertex structs.
-    while( getline( vert, city, ',' ) ){
-        // skip the cities label at the start of the line.
-        if( city == "cities" ){
-            continue;
-        }
-        addVertex(city);
-    }
-    // Loop through matrix lines and find the edges for City.
-    while( getline( inFile, Edges ) ){
-        // parse the line to translate the edge values into the adjVertex
-        // vector.
-        stringstream edges(Edges);
-        int i = 0;
-        string cityedge;
-        while( getline( edges, edge, ',' ) ){
-            // grab the name of the city on the start of this row.
-            if( i ==0 ){
-                cityedge = edge;
-            }
-            else{
-                // convert weight to int.
-                int ed;
-                stringstream eds(edge);
-                eds >> ed;
-                // only grab edges with weights > than 0.
-                if( ed > 0 ){
-                    addEdge(cityedge,vertices[i-1].name,ed);
-                }
-            }
-            i++;
-        }
-    }
-    //int x = 14;
-    //int y = 2;
-    //cout<<vertices[x].name<<' '<<vertices[x].adj[y].v->name<<' '<<vertices[x].adj[y].weight<<endl;
+Spins::Spins(){
+    //zSpin = NULL;
+    //xSpin = NULL;
+    //ySpin = NULL;
 }
 
 
@@ -70,300 +28,253 @@ Spins::~Spins(){
 }
 
 
-void Spins::addEdge(std::string v1, std::string v2, int weight){
-    for( int i=0; i < vertices.size(); i++ ){
-        if( vertices[i].name == v1 ){
-            for( int j=0; j < vertices.size(); j++ ){
-                if( vertices[j].name == v2 && i != j ){
-                    adjVertex tmp;
-                    tmp.v = &vertices[j];
-                    tmp.weight = weight;
-                    vertices[i].adj.push_back(tmp);
-                }
-            }
-        }
-    }
-}
-
-
-void Spins::addVertex(std::string name){
-    bool found = false;
-    for( int i=0; i < vertices.size(); i++ ){
-        if( vertices[i].name == name ){
-            found = true;
-            break;
-        }
-    }
-    if( found == false ){
-        vertex City;
-        City.name = name;
-        City.visited = false;
-        City.district = -1;
-        vertices.push_back(City);
-    }
-}
-
-
-void Spins::displayEdges(){
-    for( int i=0; i<vertices.size(); i++ ){
-        cout<<vertices[i].district<<':'<<vertices[i].name<<"-->";
-        for( int j=0; j<vertices[i].adj.size(); j++ ){
-            cout<<vertices[i].adj[j].v->name;
-            if( j != vertices[i].adj.size()-1 ){
-                cout<<"***";
-            }
-        }
-        cout<<endl;
-    }
-}
-
-
-void Spins::assignDistricts(){
-    // Reset all visited values to false in case the graph has changed.
-    for( int i=0; i<vertices.size(); i++ )
-    {
-        vertices[i].visited = false;
-        for( int j=0; j<vertices[i].adj.size(); j++ )
-        {
-            vertices[i].adj[j].v->visited = false;
-        }
-    }
-    int ID = 1;
-    for( int i=0; i < vertices.size(); i++ ){
-        if( vertices[i].visited == false ){
-            BFTraversalLabel( vertices[i].name, ID );
-            ID++;
-        }
-    }
-}
-
-
-void Spins::shortestPath(std::string startingCity, std::string endingCity, bool isdistance){
-    vertex *v1;
-    vertex *v2;
-    bool f1 = false;
-    bool f2 = false;
-    // Reset visited to false for the tree for the next bredth first search
-    // algorythm.
-    for( int i=0; i<vertices.size(); i++ )
-    {
-        vertices[i].visited = false;
-        for( int j=0; j<vertices[i].adj.size(); j++ )
-        {
-            vertices[i].adj[j].v->visited = false;
-        }
-    }
-    // serach for the starting and ending vertexes.
-    for( int i=0; i<vertices.size(); i++ ){
-        if( vertices[i].name == startingCity ){
-            v1 = &vertices[i];
-            f1 = true;
-        }
-        if( vertices[i].name == endingCity ){
-            v2 = &vertices[i];
-            f2 = true;
-        }
-    }
-    if( f1 == false || f2 == false ){
-        cout<<"One or more cities doesn't exist"<<endl;
-        return;
-    }
-    if( v1->district != v2->district ){
-        cout<<"No safe path between cities"<<endl;
-        return;
-    }
-    if( v1->district == -1 ){
-        cout<<"Please identify the districts before checking distances"<<endl;
-        return;
-    }
-    // Find shortest distance.
-    Dijkstra(v1->name,v2->name, isdistance);
-}
-
-
-void Spins::Dijkstra(string starting, string destination, bool isdistance)
+/* Takes a file name in the current directory as an argument. Reads a file
+ * contating a series 'u' for up and 'd' for down separated by spaces. Based on
+ * the number of up and down states in the file buildStatFromFile returns a
+ * state with probabiles for up and down determined by the probabilty of
+ * getting 'u' or 'd' in the file.
+*/
+void Spins::buildStateFromFile(char *file)
 {
-    vertex *startV;
-    vertex *endV;
-    vertex *s;
-    //vertex *solvedV;
-    vertex *parent;
-    vector<vertex *> solved;
-    int dist;
-    
-    // Serach for the starting and ending verticies and make pointers to those veritecs.
-    for( int i=0; i<vertices.size(); i++ )
+    string line;
+    string st;
+    int up = 0;      // Tallys the number of up states in file.
+    int down = 0;    // Tallys the number of down states in the file.
+    float pUp = 0.0;   // the probability of an up state in file. up/(up+down).
+    float pDown = 0.0; // the probability of an down state in file. down/(up+down).
+    int total = 0;   // The totaly number of states in the file.
+    // set the z-spin graph values to zero.
+    //zSpin->densityMatrix = {{0.0,0.0},{0.0,0.0}};
+
+    // Read in the file and tally the number of up and down states.
+    ifstream inFile(file);
+    while( getline( inFile, line) )
     {
-        if( vertices[i].name == starting )
+        stringstream stat(line);
+        //stat >> st;
+        //cout<<st<<endl;        
+        while( stat.good() )
         {
-            startV = &vertices[i];
-        }
-        else if( vertices[i].name == destination )
-        {
-           endV = & vertices[i];
-        }
-    }
-    startV->visited = true;
-    startV->distance = 0;
-    startV->previous = NULL;
-    solved.push_back(startV);
-    while( !endV->visited )
-    {
-        int minDistance = INT_MAX;
-        vertex *solvedV = NULL;
-        for( int i=0; i<solved.size(); i++ )
-        {
-            s = solved[i];
-            for( int j=0; j<s->adj.size(); j++ )
-            {
-                if( !s->adj[j].v->visited )
+            stat >> st;
+            //cout<<st.compare("u")<<endl;
+            if( st.compare("u") == 0 )
                 {
-                    dist = s->distance + s->adj[j].weight;
-                    if( dist < minDistance )
-                    {
-                        solvedV = s->adj[j].v;
-                        minDistance = dist;
-                        parent = s;
-                    }
+                    up++;
                 }
+            else if( st.compare("d") == 0 )
+            {
+                down++;
             }
         }
-        solvedV->distance = minDistance;
-        solvedV->previous = parent;
-        solvedV->visited = true;
-        solved.push_back(solvedV);
     }
-    //cout<<"Shortest Path"<<endl;
-    vertex *tmp = endV;
-    vector<vertex *> printvec;
-    while( tmp->previous != NULL )
+
+    // determine pUp and pDown.
+    total = up + down;
+    pUp = float(up) / total;
+    pDown = float(down) / total;
+
+    cout<<"Total number of state measured :"<<total<<endl;
+    cout<<"Probability of z-spin up :"<<pUp<<endl;
+    cout<<"Probability of z-spin down :"<<pDown<<endl;
+
+    // Make a state from the propbabilities.
+    // We need the off-diagonal elements to be zero.
+    state *fileState = new state;
+    //fileState.densityMatrix = {{0.0,0.0},{0.0,0.0}};
+    fileState->direction = 'z';
+    fileState->densityMatrix[0][0] = pUp;
+    fileState->densityMatrix[0][1] = 0.0;
+    fileState->densityMatrix[1][1] = pDown;
+    fileState->densityMatrix[1][0] = 0.0;
+
+    // Print the "state density matrix" it's just a 2-node graph whose edges
+    // are the probability of measuring either spin up or spin down. It's
+    // simply a weighted adjacency matrix.
+    cout<<"The new z-spin state graph is, "<<endl;
+    cout<<'|'<<fileState->densityMatrix[0][0]
+        <<' '<<fileState->densityMatrix[0][1]<<'|'<<endl;
+    cout<<'|'<<fileState->densityMatrix[1][0]
+        <<' '<<fileState->densityMatrix[1][1]<<'|'<<endl;
+    zSpin = fileState;
+    delete fileState;
+}
+
+
+
+// Take argv[0] as argument and pass it to buildStateFromFile.
+void Spins::buildStateFileArgument(char *arg)
+{
+    buildStateFromFile(arg);
+}
+
+/* Take some user defined probabilities and use them to build and set the
+ * z-sping state graph or "density matrix".
+*/
+void Spins::buildStateByHand(float pUp, float pDown)
+{
+    // set the z-spin graph values to zero.
+    //zSpin->densityMatrix = {{0.0,0.0},{0.0,0.0}};
+
+    cout<<"Probability of z-spin up :"<<pUp<<endl;
+    cout<<"Probability of z-spin down :"<<pDown<<endl;
+
+    // Make a state from the propbabilities.
+    // We need the off-diagonal elements to be zero.
+    state *fileState = new state;
+    //fileState.densityMatrix = {{0.0,0.0},{0.0,0.0}};
+    fileState->direction = 'z';
+    fileState->densityMatrix[0][0] = pUp;
+    fileState->densityMatrix[0][1] = 0.0;
+    fileState->densityMatrix[1][1] = pDown;
+    fileState->densityMatrix[1][0] = 0.0;
+
+    // Print the "state density matrix" it's just a 2-node graph whose edges
+    // are the probability of measuring either spin up or spin down. It's
+    // simply a weighted adjacency matrix.
+    cout<<"The new z-spin state graph is, "<<endl;
+    cout<<'|'<<fileState->densityMatrix[0][0]
+        <<' '<<fileState->densityMatrix[0][1]<<'|'<<endl;
+    cout<<'|'<<fileState->densityMatrix[1][0]
+        <<' '<<fileState->densityMatrix[1][1]<<'|'<<endl;
+    zSpin = fileState;
+    delete fileState;
+}
+
+
+void Spins::printZSpinGraph()
+{
+    if( zSpin != NULL )
     {
-        printvec.push_back(tmp);
-        tmp = tmp->previous;
-    }
-    if(!isdistance)
-    {
-        cout<<printvec.size()<<','<<startV->name<<",";
+        cout<<"The z-spin state graph is, "<<endl;
+        cout<<'|'<<zSpin->densityMatrix[0][0]
+            <<' '<<zSpin->densityMatrix[0][1]<<'|'<<endl;
+        cout<<'|'<<zSpin->densityMatrix[1][0]
+            <<' '<<zSpin->densityMatrix[1][1]<<'|'<<endl;
+        cout<<"The current time step is :"<<zSpin->time<<endl;
     }
     else
     {
-        cout<<endV->distance<<','<<startV->name<<",";
+        cout<<"No z-spin state defined yet"<<endl;
     }
-    for( int i=printvec.size()-1; i >0; i-- )
-    {
-        cout<<printvec[i]->name<<",";
-    }
-    cout<<endV->name<<endl;
 }
 
 
-void Spins::roadTrip()
+void Spins::printXSpinGraph()
 {
-    vector<trip> trips;
-    for( int x=0; x<vertices.size(); x++ )
+    if( zSpin != NULL )
     {
-        trip thisTrip;
-        //thisTrip.trip.push_back(&vertices[x]);
-        thisTrip.distance = 0;
-    if( vertices[x].district == -1 ){
-        cout<<"Please identify the districts before checking distances"<<endl;
-        return;
+        cout<<"The x-spin state graph is, "<<endl;
+        cout<<'|'<<xSpin->densityMatrix[0][0]
+            <<' '<<xSpin->densityMatrix[0][1]<<'|'<<endl;
+        cout<<'|'<<xSpin->densityMatrix[1][0]
+            <<' '<<xSpin->densityMatrix[1][1]<<'|'<<endl;
+        cout<<"The current time step is :"<<xSpin->time<<endl;
     }
-        for( int i=0; i<vertices.size(); i++ )
-        {
-            vertices[i].visited = false;
-            for( int j=0; j<vertices[i].adj.size(); j++ )
-            {
-                vertices[i].adj[j].v->visited = false;
-            }
-        }
-    dFS(&vertices[x], &thisTrip);
-    trips.push_back(thisTrip);
-    }
-    int d = INT_MAX;
-    vector<vertex *> t;
-    cout<<trips.size()<<endl;
-    for( int y=0; y<trips.size(); y++ )
+    else
     {
-        if( trips[y].distance < d )
-        {
-            d = trips[y].distance;
-            t = trips[y].trip;
-        }
+        cout<<"No x-spin state defined yet"<<endl;
     }
-    cout<<d<<",";//<<t[0]->name;
-    for( int i=t.size()-1; i >0; i-- )
-    {
-        cout<<t[i]->name<<",";
-    }
-    cout<<t.back()->name<<endl;
 }
 
 
-void Spins::dFS(vertex *vert, trip *thisTrip)
+void Spins::printYSpinGraph()
 {
-    vert->visited = true;
-    vert->distance = 0;
-    for( int i=0; i < vert->adj.size(); i++ )
+    if( zSpin != NULL )
     {
-        if( !vert->adj[i].v->visited )
-        {
-            //vert->adj[i].v->distance = vert->distance + vert->adj[i].weight;
-            thisTrip->distance = thisTrip->distance + vert->adj[i].weight;
-            //cout<<vert->adj[i].v->name<<endl;
-            thisTrip->trip.push_back(vert->adj[i].v);
-            DFS(vert->adj[i].v, thisTrip);
-        }
-
+        cout<<"The y-spin state graph is, "<<endl;
+        cout<<'|'<<ySpin->densityMatrix[0][0]
+            <<' '<<ySpin->densityMatrix[0][1]<<'|'<<endl;
+        cout<<'|'<<ySpin->densityMatrix[1][0]
+            <<' '<<ySpin->densityMatrix[1][1]<<'|'<<endl;
+        cout<<"The current time step is :"<<ySpin->time<<endl;
     }
-    
+    else
+    {
+        cout<<"No y-spin state defined yet"<<endl;
+    }
 }
 
-
-void Spins::DFS(vertex *vert, trip *thisTrip)
+// Make the y-spin graph by operating on the z-spin graph with the y-spin
+// operator. This is just basic multiplication of 2x2 matricies.
+void Spins::makeYSpinGraph()
 {
-    vert->visited = true;
-    for( int i=0; i < vert->adj.size(); i++ )
-    {
-        if( !vert->adj[i].v->visited )
-        {
-            //vert->adj[i].v->distance = vert->distance + vert->adj[i].weight;
-            thisTrip->distance = thisTrip->distance + vert->adj[i].weight;
-            //cout<<vert->adj[i].v->name<<endl;
-            thisTrip->trip.push_back(vert->adj[i].v);
-            DFS(vert->adj[i].v, thisTrip);
-        }
+    state *y= new state;
+    // Multiply the z-sping graph by the Sy operator matrix.
+    y->densityMatrix[0][0] = 
+           (zSpin->densityMatrix[0][0] * zOperators.Sy[0][0])
+           + (zSpin->densityMatrix[0][1] * zOperators.Sy[1][0]);
 
-    }
-    
+    y->densityMatrix[1][0] = 
+           (zSpin->densityMatrix[1][0] * zOperators.Sy[0][0])
+           + (zSpin->densityMatrix[1][1] * zOperators.Sy[1][0]);
+
+    y->densityMatrix[0][1] = 
+           (zSpin->densityMatrix[0][0] * zOperators.Sy[0][1])
+           + (zSpin->densityMatrix[0][1] * zOperators.Sy[1][1]);
+
+    y->densityMatrix[1][1] = 
+           (zSpin->densityMatrix[1][0] * zOperators.Sy[0][1])
+           + (zSpin->densityMatrix[1][1] * zOperators.Sy[1][1]);
+    ySpin = y;
+    delete y;
+
+    // Print the new y-spin Graph.
+    cout<<"The new y-spin state graph is, "<<endl;
+    cout<<'|'<<ySpin->densityMatrix[0][0]
+        <<' '<<ySpin->densityMatrix[0][1]<<'|'<<endl;
+    cout<<'|'<<ySpin->densityMatrix[1][0]
+        <<' '<<ySpin->densityMatrix[1][1]<<'|'<<endl;
+    cout<<"The current time step is :"<<ySpin->time<<endl;
 }
 
 
 
-//call this from within assignDistricts to label the districts.
-//This method should implement a breadth first traversal from the startingCity
-//and assign all cities encountered the distID value
-void Spins::BFTraversalLabel(std::string startingCity, int distID){
-    vertex *city;
-    vertex *n;
-    queue<vertex *>  beenTo;
-    for( int i=0; i<vertices.size(); i++ ){
-        if( vertices[i].name == startingCity ){
-            city = &vertices[i];
-        }
-    }
-    city->visited = true;
-    city->district = distID;
-    beenTo.push(city);
-    while(!beenTo.empty()){
-        n = beenTo.front(); // front gets referance.
-        beenTo.pop();       // pop removes same elem from que.
-        for( int i=0; i<n->adj.size(); i++ ){
-            if( !n->adj[i].v->visited ){
-                n->adj[i].v->visited = true;
-                n->adj[i].v->district = distID;
-                beenTo.push(n->adj[i].v);
-            }
-        }
+void Spins::makeXSpinGraph()
+{
+    state *x = new state;
+    // Multiply the z-sping graph by the Sy operator matrix.
+    x->densityMatrix[0][0] = 
+           (zSpin->densityMatrix[0][0] * zOperators.Sx[0][0])
+           + (zSpin->densityMatrix[0][1] * zOperators.Sx[1][0]);
+
+    x->densityMatrix[1][0] = 
+           (zSpin->densityMatrix[1][0] * zOperators.Sx[0][0])
+           + (zSpin->densityMatrix[1][1] * zOperators.Sx[1][0]);
+
+    x->densityMatrix[0][1] = 
+           (zSpin->densityMatrix[0][0] * zOperators.Sx[0][1])
+           + (zSpin->densityMatrix[0][1] * zOperators.Sx[1][1]);
+
+    x->densityMatrix[1][1] = 
+           (zSpin->densityMatrix[1][0] * zOperators.Sx[0][1])
+           + (zSpin->densityMatrix[1][1] * zOperators.Sx[1][1]);
+    xSpin = x;
+    delete x;
+
+    // Print the new y-spin Graph.
+    cout<<"The new x-spin state graph is, "<<endl;
+    cout<<'|'<<xSpin->densityMatrix[0][0]
+        <<' '<<xSpin->densityMatrix[0][1]<<'|'<<endl;
+    cout<<'|'<<xSpin->densityMatrix[1][0]
+        <<' '<<xSpin->densityMatrix[1][1]<<'|'<<endl;
+    cout<<"The current time step is :"<<xSpin->time<<endl;
+}
+
+
+void Spins::zExpectationValue()
+{
+    float expec;
+    expec = ( 1*zSpin->densityMatrix[0][0] ) + ( -1*zSpin->densityMatrix[1][1] );
+    cout<<"The expactation value of z-spin is: "<<expec<<endl;
+}
+
+
+void Spins::xExpectationValue()
+{
+    if( xSpin != NULL )
+    {
+        float expec;
+        expec = ( 1*xSpin->densityMatrix[0][0] ) + ( -1*xSpin->densityMatrix[1][1] );
+        cout<<"The expactation value of z-spin is: "<<expec<<endl;
     }
 }

@@ -1,6 +1,6 @@
 /*
 *   Brandon Bell
-*   Assignment10
+*   Final Project 
 *   Recitation: Th 1030am
 *   Guogui Ding
 *
@@ -10,72 +10,54 @@
 #include<vector>
 #include<iostream>
 
-struct vertex;
-
-/*This is the struct for the adjacent vertices for each
- vertex in the graph. */
-struct adjVertex{
-    vertex *v;
-    int weight;
-};
-/*this is the struct for each vertex in the graph.
-You will need a vector of these things.
-When you construct the shortest path between two vertices, there
- are multiple approaches. There is an algorithm in your book that
- uses an array and the index in the array represents the order that
- the vertex with a specified ID is visited. In the struct vertex, the
- ID property is used for that algorithm. Another approach is to store
- a pointer to the parent vertex. I've added a property parent to struct
- vertex that can be used for that purpose.
- */
-struct vertex{
-    int ID;
-    vertex *parent;
-    std::string name;
-    int district;
-    bool visited;
-    int distance;
-    vertex *previous;
-    std::vector<adjVertex> adj;
-};
-/*Another approach to storing the shortest path is to store a vector of
- pointers to the vertices visited so far along the current path. You can
- use this struct queueVertex for that purpose. Truthfully, storing the parent
- for each vertex as mentioned above is probably easier.*/
-struct queueVertex{
-    int distance;
-    std::vector<vertex *> path;
+// Defines the basic graph structure used to store the probabilites (edges) of the
+// differant spin states (the verticeses).
+struct state
+{
+    std::string direction;
+    float densityMatrix[2][2];// {{0.0,0.0},{0.0,0.0}};
+    int time = 0;
 };
 
-struct trip{
-    int distance;
-    std::vector<vertex *> trip;
+
+/* Define the operators that can be applied to the z-spin state to determine
+ * the values for spin up and down along the x and y axis.
+*/
+struct zSpinOperators
+{
+    // The Sx operator measures the spin component along the x-axis.
+    float Sx[2][2] = {{0,1},
+                      {1,0}};
+    // The Sy operator measures the spin component along the y-axis.
+    float Sy[2][2] = {{0,-1},
+                      {1,0}};
+    // The Sz operator measures the spin component along the z-axis.
+    float Sz[2][2] = {{1,0},
+                      {0,-1}};
 };
 
 class Spins
 {
     public:
-        Spins(char *);
+        Spins();
         ~Spins();
-        void addEdge(std::string v1, std::string v2, int weight);
-        void addVertex(std::string name);
-        void displayEdges();
-        void assignDistricts();
-        void shortestPath(std::string startingCity, std::string endingCity, bool isdistance);
-        void roadTrip();
+        void buildStateFromFile(char *);
+        void buildStateFileArgument(char *);
+        void buildStateByHand(float pUp, float pDown);
+        void printZSpinGraph();
+        void printXSpinGraph();
+        void printYSpinGraph();
+        void makeXSpinGraph();
+        void makeYSpinGraph();
+        void zExpectationValue();
+        void xExpectationValue();
+        state *zSpin = new state;
+        state *xSpin = new state;
+        state *ySpin = new state;
+        zSpinOperators zOperators;
 
     protected:
     private:
-        std::vector<vertex> vertices;
-        vertex * findVertex(std::string name);
-        //call this from within assignDistricts to label the districts.
-        //This method should implement a breadth first traversal from the startingCity
-        //and assign all cities encountered the distID value
-        void Dijkstra(std::string starting, std::string destination, bool isdistance);
-        void dFS(vertex *vert, trip *thisTrip);
-        void DFS(vertex *vert, trip *thisTrip);
-        void BFTraversalLabel(std::string startingCity, int distID);
-
 };
 
 #endif // SPINS_H
